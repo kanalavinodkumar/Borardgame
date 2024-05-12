@@ -103,8 +103,8 @@ pipeline {
 
         stage('Deployment') {
             steps {
-                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.0.1.184:6443') {
-                    //sh 'kubectl apply -f manifest.yaml'  
+                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.1.0.5:6443') {
+                    sh 'kubectl apply -f manifest.yaml'  
                 }
             }
         }
