@@ -6,11 +6,11 @@ pipeline {
         maven 'maven'
     }
 
-    // environment{
-    //     //here if you create any variable you will have global access, since it is environment no need of def
-    //     packageVersion = ''
-    //     SCANNER_HOME = tool 'sonar-scanner'
-    // }
+    environment{
+        //here if you create any variable you will have global access, since it is environment no need of def
+        packageVersion = ''
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
     stages {
         stage('Git Checkout') {
             steps {
@@ -28,50 +28,50 @@ pipeline {
             }
         }
 
-        // stage('File system scan') {
-        //     steps {
-        //         sh "trivy fs --format table -o trivy-image-report.html ."
-        //     }
-        // }
+        stage('File system scan') {
+            steps {
+                sh "trivy fs --format table -o trivy-image-report.html ."
+            }
+        }
 
-        // stage('Sonarqube Analysis') {
-        //     steps {
-        //         withSonarQubeEnv('sonar') {
-        //             sh '''
-        //                 # $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Boardgame -Dsonar.projectkey=Boardgame \
-        //                 # Dsonar.java.binaries=.
-        //                 /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.projectName=Boardgame -Dsonar.projectKey=Boardgame -Dsonar.java.binaries=.
+        stage('Sonarqube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh '''
+                        $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Boardgame \
+                        -Dsonar.projectkey=Boardgame \
+                        Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
 
-        //             '''
-        //         }
-        //     }
+                    '''
+                }
+            }
 
-        // }
+        }
 
-        // stage('Quality Gate') {
-        //     steps {
-        //         script {
-        //           waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
-        //         }
-        //     }
-        // }
+        stage('Quality Gate') {
+            steps {
+                script {
+                  waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
+                }
+            }
+        }
 
-        // stage('Build') {
-        //     steps {
-        //         sh '''
-        //             mvn package
-        //         '''
-        //     }
-        // }
+        stage('Build') {
+            steps {
+                sh '''
+                    mvn package
+                '''
+            }
+        }
 
-        // stage('publish to Nexus') {
-        //     steps {
-        //         withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
-        //             sh 'mvn deploy'
+        stage('publish to Nexus') {
+            steps {
+                withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+                    sh 'mvn deploy'
                     
-        //         }
-        //     }
-        // }
+                }
+            }
+        }
 
         // stage('Docker Build') {
         //         steps {
