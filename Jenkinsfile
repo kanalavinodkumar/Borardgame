@@ -28,86 +28,86 @@ pipeline {
             }
         }
 
-        stage('File system scan') {
-            steps {
-                sh "trivy fs --format table -o trivy-image-report.html ."
-            }
-        }
+        // stage('File system scan') {
+        //     steps {
+        //         sh "trivy fs --format table -o trivy-image-report.html ."
+        //     }
+        // }
 
-        stage('Sonarqube Analysis') {
-            steps {
-                withSonarQubeEnv('sonar') {
-                    sh '''
-                        # $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Boardgame -Dsonar.projectkey=Boardgame \
-                        # Dsonar.java.binaries=.
-                        /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.projectName=Boardgame -Dsonar.projectKey=Boardgame -Dsonar.java.binaries=.
+        // stage('Sonarqube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('sonar') {
+        //             sh '''
+        //                 # $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Boardgame -Dsonar.projectkey=Boardgame \
+        //                 # Dsonar.java.binaries=.
+        //                 /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.projectName=Boardgame -Dsonar.projectKey=Boardgame -Dsonar.java.binaries=.
 
-                    '''
-                }
-            }
+        //             '''
+        //         }
+        //     }
 
-        }
+        // }
 
-        stage('Quality Gate') {
-            steps {
-                script {
-                  waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
-                }
-            }
-        }
+        // stage('Quality Gate') {
+        //     steps {
+        //         script {
+        //           waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
+        //         }
+        //     }
+        // }
 
-        stage('Build') {
-            steps {
-                sh '''
-                    mvn package
-                '''
-            }
-        }
+        // stage('Build') {
+        //     steps {
+        //         sh '''
+        //             mvn package
+        //         '''
+        //     }
+        // }
 
-        stage('publish to Nexus') {
-            steps {
-                withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
-                    sh 'mvn deploy'
+        // stage('publish to Nexus') {
+        //     steps {
+        //         withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+        //             sh 'mvn deploy'
                     
-                }
-            }
-        }
+        //         }
+        //     }
+        // }
 
-        stage('Docker Build') {
-                steps {
-                    script{
-                        sh """
-                            docker build -t kanalavinodkumar/boardgame:latest .
-                        """
-                    }
-                }
-        }
+        // stage('Docker Build') {
+        //         steps {
+        //             script{
+        //                 sh """
+        //                     docker build -t kanalavinodkumar/boardgame:latest .
+        //                 """
+        //             }
+        //         }
+        // }
 
-        stage('docker image scan') {
-            steps {
-                sh "trivy image --format table -o trivy-image-report.html kanalavinodkumar/boardgame"
-            }
-        }
+        // stage('docker image scan') {
+        //     steps {
+        //         sh "trivy image --format table -o trivy-image-report.html kanalavinodkumar/boardgame"
+        //     }
+        // }
 
-        stage('Docker Push') {
-                steps {
-                    script{
-                        withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh 'docker push kanalavinodkumar/boardgame:latest'
-                        }
+        // stage('Docker Push') {
+        //         steps {
+        //             script{
+        //                 withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+        //                 sh 'docker push kanalavinodkumar/boardgame:latest'
+        //                 }
 
-                    }
+        //             }
                     
-                }
-        }
+        //         }
+        // }
 
-        stage('Deployment') {
-            steps {
-                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.1.0.5:6443') {
-                    sh 'kubectl apply -f manifest.yaml'  
-                }
-            }
-        }
+        // stage('Deployment') {
+        //     steps {
+        //         withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.1.0.5:6443') {
+        //             sh 'kubectl apply -f manifest.yaml'  
+        //         }
+        //     }
+        // }
      }
 
     post {
