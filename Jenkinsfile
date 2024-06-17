@@ -38,7 +38,8 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar') {
                     sh '''
-                        $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Boardgame \
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectName=Boardgame \
                         -Dsonar.projectkey=Boardgame \
                         Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
 
