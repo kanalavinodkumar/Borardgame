@@ -24,6 +24,7 @@ pipeline {
                 mvn compile
                 mvn test
                 '''
+                
             }
         }
 
