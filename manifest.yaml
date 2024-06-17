@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment # Kubernetes resource kind we are creating
 metadata:
   name: boardgame-deployment
-  namespace: boardgame
+  namespace: boardgame 
 spec:
   selector:
     matchLabels:
