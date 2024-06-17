@@ -5,7 +5,7 @@ pipeline {
         jdk 'jdk'
         maven 'maven'
     }
-
+    
     environment{
         //here if you create any variable you will have global access, since it is environment no need of def
         packageVersion = ''
@@ -41,7 +41,7 @@ pipeline {
                         ${SCANNER_HOME}/bin/sonar-scanner \
                         -Dsonar.projectName=Boardgame \
                         -Dsonar.projectkey=Boardgame \
-                        Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
+                        -Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
 
                     '''
                 }
