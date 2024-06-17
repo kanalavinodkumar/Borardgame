@@ -2,19 +2,19 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk'
+        //jdk 'jdk'
         maven 'maven'
     }
     
     environment{
         //here if you create any variable you will have global access, since it is environment no need of def
         packageVersion = ''
-        SCANNER_HOME = tool 'sonar-scanner'
+       //SCANNER_HOME = tool 'sonar-scanner'
     }
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'master', credentialsId: 'git-cred', url: 'https://github.com/kanalavinodkumar/Borardgame.git'
+                git branch: 'master', credentialsId: 'git', url: 'https://github.com/kanalavinodkumar/Borardgame.git'
             }
         }
 
@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Sonarqube Analysis') {
+        /* stage('Sonarqube Analysis') {
             steps {
                 withSonarQubeEnv('sonar') {
                     sh '''
@@ -48,7 +48,7 @@ pipeline {
             }
 
         }
-        
+
 
         stage('Quality Gate') {
             steps {
@@ -56,7 +56,7 @@ pipeline {
                   waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
                 }
             }
-        }
+        } */
 
         stage('Build') {
             steps {
@@ -68,7 +68,7 @@ pipeline {
 
         stage('publish to Nexus') {
             steps {
-                withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
+                withMaven(globalMavenSettingsConfig: 'global', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
                     sh 'mvn deploy'
                     
                 }
@@ -112,38 +112,43 @@ pipeline {
         // }
      }
 
-    post {
-    always {
-        script {
-            def jobName = env.JOB_NAME
-            def buildNumber = env.BUILD_NUMBER
-            def pipelineStatus = currentBuild.result ?: 'UNKNOWN'
-            def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
+//     post {
+//     always {
+//         script {
+//             def jobName = env.JOB_NAME
+//             def buildNumber = env.BUILD_NUMBER
+//             def pipelineStatus = currentBuild.result ?: 'UNKNOWN'
+//             def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
 
-            def body = """
-                <html>
-                <body>
-                <div style="border: 4px solid ${bannerColor}; padding: 10px;">
-                <h2>${jobName} - Build ${buildNumber}</h2>
-                <div style="background-color: ${bannerColor}; padding: 10px;">
-                <h3 style="color: white;">Pipeline Status: ${pipelineStatus.toUpperCase()}</h3>
-                </div>
-                <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                </div>
-                </body>
-                </html>
-            """
+//             def body = """
+//                 <html>
+//                 <body>
+//                 <div style="border: 4px solid ${bannerColor}; padding: 10px;">
+//                 <h2>${jobName} - Build ${buildNumber}</h2>
+//                 <div style="background-color: ${bannerColor}; padding: 10px;">
+//                 <h3 style="color: white;">Pipeline Status: ${pipelineStatus.toUpperCase()}</h3>
+//                 </div>
+//                 <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+//                 </div>
+//                 </body>
+//                 </html>
+//             """
 
-            emailext (
-                subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
-                body: body,
-                to: 'kanalavinodkumar@gmail.com',
-                from: 'vinodkumarkanala@gmail.com',
-                replyTo: 'vinodkumarkanala@gmail.com',
-                mimeType: 'text/html',
-                attachmentsPattern: 'trivy-image-report.html'
-            )
-        }
+//             emailext (
+//                 subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
+//                 body: body,
+//                 to: 'kanalavinodkumar@gmail.com',
+//                 from: 'vinodkumarkanala@gmail.com',
+//                 replyTo: 'vinodkumarkanala@gmail.com',
+//                 mimeType: 'text/html',
+//                 attachmentsPattern: 'trivy-image-report.html'
+//             )
+//         }
+//     }
+// }
+post{
+        always{
+            echo 'cleaning up workspace'
+            }
     }
-}
 }
