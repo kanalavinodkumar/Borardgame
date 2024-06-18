@@ -24,7 +24,7 @@ pipeline {
                 mvn compile
                 mvn test
                 '''
-                
+
             }
         }
 
@@ -62,6 +62,8 @@ pipeline {
             steps {
                 sh '''
                     mvn package
+                    pwd
+                    ls -la
                 '''
             }
         }
@@ -70,8 +72,11 @@ pipeline {
             steps {
                 withMaven(globalMavenSettingsConfig: 'global', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
                     sh 'mvn deploy'
+                    sh 'pwd'
+                    sh 'ls -la'
                     
                 }
+ 
             }
         }
 
