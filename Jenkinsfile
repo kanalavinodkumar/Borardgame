@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        //jdk 'jdk'
+        jdk 'jdk'
         maven 'maven'
     }  
     environment{
@@ -80,41 +80,41 @@ pipeline {
             }
         }
 
-        // stage('Docker Build') {
-        //         steps {
-        //             script{
-        //                 sh """
-        //                     docker build -t kanalavinodkumar/boardgame:latest .
-        //                 """
-        //             }
-        //         }
-        // }
+        stage('Docker Build') {
+                steps {
+                    script{
+                        sh """
+                            docker build -t kanalavinodkumar/boardgame:latest .
+                        """
+                    }
+                }
+        }
 
-        // stage('docker image scan') {
-        //     steps {
-        //         sh "trivy image --format table -o trivy-image-report.html kanalavinodkumar/boardgame"
-        //     }
-        // }
+        stage('docker image scan') {
+            steps {
+                sh "trivy image --format table -o trivy-image-report.html kanalavinodkumar/boardgame"
+            }
+        }
 
-        // stage('Docker Push') {
-        //         steps {
-        //             script{
-        //                 withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-        //                 sh 'docker push kanalavinodkumar/boardgame:latest'
-        //                 }
+        stage('Docker Push') {
+                steps {
+                    script{
+                        withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                        sh 'docker push kanalavinodkumar/boardgame:latest'
+                        }
 
-        //             }
+                    }
                     
-        //         }
-        // }
+                }
+        }
 
-        // stage('Deployment') {
-        //     steps {
-        //         withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.1.0.5:6443') {
-        //             sh 'kubectl apply -f manifest.yaml'  
-        //         }
-        //     }
-        // }
+        stage('Deployment') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.1.0.5:6443') {
+                    sh 'kubectl apply -f manifest.yaml'  
+                }
+            }
+        }
      }
 
 //     post {
