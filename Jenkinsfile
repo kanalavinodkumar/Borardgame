@@ -84,7 +84,7 @@ pipeline {
                 steps {
                     script{
                         sh """
-                           sudo docker build -t kanalavinodkumar/boardgame:latest .
+                           docker build -t kanalavinodkumar/boardgame:latest .
                         """
                     }
                 }
@@ -100,7 +100,7 @@ pipeline {
                 steps {
                     script{
                         withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh 'sudo docker push kanalavinodkumar/boardgame:latest'
+                        sh 'docker push kanalavinodkumar/boardgame:latest'
                         }
 
                     }
