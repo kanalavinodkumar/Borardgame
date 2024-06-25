@@ -8,7 +8,7 @@ pipeline {
     environment{
         //here if you create any variable you will have global access, since it is environment no need of def
         packageVersion = ''
-       SCANNER_HOME = tool 'sonar-scanner'
+       SCANNER_HOME = tool 'sonar'
     }
     stages {
         stage('Git Checkout') {
