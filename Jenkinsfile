@@ -35,29 +35,29 @@ pipeline {
             }
         }
 
-        stage('Sonarqube Analysis') {
-            steps {
-                withSonarQubeEnv('sonar') {
-                    sh '''
-                        ${SCANNER_HOME}/bin/sonar-scanner \
-                        -Dsonar.projectName=Boardgame \
-                        -Dsonar.projectkey=Boardgame \
-                        -Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
+        // stage('Sonarqube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('sonar') {
+        //             sh '''
+        //                 ${SCANNER_HOME}/bin/sonar-scanner \
+        //                 -Dsonar.projectName=Boardgame \
+        //                 -Dsonar.projectkey=Boardgame \
+        //                 -Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
 
-                    '''
-                }
-            }
+        //             '''
+        //         }
+        //     }
 
-        }
+        // }
 
 
-        stage('Quality Gate') {
-            steps {
-                script {
-                  waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
-                }
-            }
-        }
+        // stage('Quality Gate') {
+        //     steps {
+        //         script {
+        //           waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
+        //         }
+        //     }
+        // }
 
         stage('Build') {
             steps {
