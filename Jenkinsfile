@@ -4,11 +4,12 @@ pipeline {
     tools {
         jdk 'jdk'
         maven 'maven'
+        
     }  
     environment{
         //here if you create any variable you will have global access, since it is environment no need of def
         packageVersion = ''
-       SCANNER_HOME = tool 'sonar'
+       SCANNER_HOME = tool 'sonar-scanner'
     }
     stages {
         stage('Git Checkout') {
