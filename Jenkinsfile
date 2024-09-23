@@ -49,7 +49,7 @@ pipeline {
         stage('Quality Gate check') {
             steps {
                 timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: false,
+                    waitForQualityGate abortPipeline: false
                 }
             }
         }
@@ -70,7 +70,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred') {
-                        sh"docker build -t ${IMAGE_NAME}:{TAG} ."
+                        sh "docker build -t ${IMAGE_NAME}:{TAG} ."
                     }
                 }
             }
@@ -79,7 +79,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred') {
-                        sh"docker push ${IMAGE_NAME}:{TAG}"
+                        sh "docker push ${IMAGE_NAME}:{TAG}"
                     }
                 }
             }
@@ -102,9 +102,9 @@ pipeline {
                 script{
                     def deploymentFile = ""
                     if (params.DEPLOY_ENV == 'blue') {
-                        deploymentFile = blue.yaml
+                        deploymentFile = 'blue.yaml'
                     } else {
-                        deploymentFile = green.yaml
+                        deploymentFile = 'green.yaml'
                     }
                     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
                     sh 'kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE}'
@@ -113,8 +113,7 @@ pipeline {
                 }
                 
             }
-        }
-        
+        }   
         stage('Switch traffic') {
             when {
                 expression {return params.SWITCH_TRAFFIC }
@@ -123,8 +122,9 @@ pipeline {
                 script{
                     def newEnv = params.DEPLOY_ENV
                     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
-                    sh '''kubectl parch service boardgame-svc -p "{\\"spec\\": {\\"selector\\": {\\"app\\": \\"boardgame\\", \\"version\\":\\"''' + newEnv +'''\\"}}} -n ${KUBE_NAMESPACE}
+                    sh '''kubectl patch service boardgame-svc -p "{\\"spec\\": {\\"selector\\": {\\"app\\": \\"boardgame\\", \\"version\\":\\"''' + newEnv + '''\\"}}}" -n ${KUBE_NAMESPACE}
                     '''
+
                     }
                     echo "Traffic has been switched to ${newEnv} environment"
                 }
