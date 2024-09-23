@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata: # Metadata of the resource kind we are creating
+  name: boardgame-svc
+  namespace: boardgame
+spec:
+  selector:
+    app: boardgame
+    version: blue
+  type: NodePort
+  ports:
+  - name: http-port
+    protocol: TCP
+    # service-port
+    port: 8080
+    # pod-port
+    targetPort: 8080
