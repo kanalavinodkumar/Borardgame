@@ -88,7 +88,9 @@ pipeline {
             steps {
                 script{
                     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
-                    sh """if ! kubectl get svc boardgame-svc -n ${KUBE_NAMESPACE}; then
+                    sh """ ls -la
+                            pwd
+                        if ! kubectl get svc boardgame-svc -n ${KUBE_NAMESPACE}; then
                         kubectl apply -f service.yaml -n ${KUBE_NAMESPACE}
                         fi
                     """
