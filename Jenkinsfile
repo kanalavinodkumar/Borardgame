@@ -70,7 +70,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred') {
-                        sh "docker build -t ${IMAGE_NAME}:{TAG} ."
+                        sh "sudo docker build -t ${IMAGE_NAME}:{TAG} ."
                     }
                 }
             }
@@ -79,7 +79,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred') {
-                        sh "docker push ${IMAGE_NAME}:{TAG}"
+                        sh "sudo docker push ${IMAGE_NAME}:{TAG}"
                     }
                 }
             }
