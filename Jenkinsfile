@@ -1,123 +1,156 @@
 pipeline {
     agent any
-
+    
     tools {
-        jdk 'jdk'
-        maven 'maven'
-        
-    }  
-    environment{
-        //here if you create any variable you will have global access, since it is environment no need of def
-        packageVersion = ''
-       SCANNER_HOME = tool 'sonar-scanner'
+        maven 'maven3'
     }
+    
+    parameters {
+        choice(name:'DEPLOY_ENV', choices: ['blue','green'], description:'Choose which env to deploy: Blue or Green')
+        choice(name:'DOCKER_TAG', choices: ['blue','green'], description:'Choose docker img for deployment')
+        booleanParam(name:'SWITCH_TRAFFIC', defaultValue: false, description: 'Switch traffic between blue and green')
+    }
+    
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        IMAGE_NAME = "kanalavinodkumar/boardgame"
+        TAG = "${params.DOCKER_TAG}"
+        KUBE_NAMESPACE = 'boardgame'
+    }
+
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'master', credentialsId: 'git', url: 'https://github.com/kanalavinodkumar/Borardgame.git'
+                git credentialsId: 'jenkins-aws-github-creds', url: 'https://github.com/kanalavinodkumar/Borardgame.git'
             }
         }
-
-        stage('compile and test') {
+        stage('Compile') {
             steps {
-                sh '''
-                mvn clean
-                mvn compile
-                mvn test
-                '''
-
+                sh "mvn compile"
             }
         }
-
-        stage('File system scan') {
+        stage('Test') {
             steps {
-                sh "trivy fs --format table -o trivy-image-report.html ."
+                sh "mvn test -DskipTests=true"
             }
         }
-
-        // stage('Sonarqube Analysis') {
-        //     steps {
-        //         withSonarQubeEnv('sonar') {
-        //             sh '''
-        //                 ${SCANNER_HOME}/bin/sonar-scanner \
-        //                 -Dsonar.projectName=Boardgame \
-        //                 -Dsonar.projectkey=Boardgame \
-        //                 -Dsonar.java.binaries=./var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner
-
-        //             '''
-        //         }
-        //     }
-
-        // }
-
-
-        // stage('Quality Gate') {
-        //     steps {
-        //         script {
-        //           waitForQualityGate abortPipeline: false, credentialsId: 'sonar' 
-        //         }
-        //     }
-        // }
-
+        stage('Trivy FS scan') {
+            steps {
+                sh "trivy fs --format table -o fs.html ."
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=Boardgame -Dsonar.projectName=Boardgame -Dsonar.java.binaries=target"
+                }
+            }
+        }
+        stage('Quality Gate check') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: false,
+                }
+            }
+        }
         stage('Build') {
             steps {
-                sh '''
-                    mvn package
-                    pwd
-                    ls -la
-                '''
+                sh "mvn package -DskipTests=true"
             }
         }
-
-        stage('publish to Nexus') {
+        stage('Publish to Nexus') {
             steps {
-                withMaven(globalMavenSettingsConfig: 'global', jdk: 'jdk', maven: 'maven', mavenSettingsConfig: '', traceability: true) {
-                    sh 'mvn deploy'
-                    sh 'pwd'
-                    sh 'ls -la'
-                    
+                withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: '', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
+                    sh "mvn deploy -DskipTests=true"
                 }
- 
             }
         }
-
-        stage('Docker Build') {
-                steps {
-                    script{
-                        sh """
-                           docker build -t kanalavinodkumar/boardgame:latest .
-                        """
+        
+        stage('Docker build & Tag image') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh"docker build -t ${IMAGE_NAME}:{TAG} ."
                     }
                 }
-        }
-
-        stage('docker image scan') {
-            steps {
-                sh "trivy image --format table -o trivy-image-report.html kanalavinodkumar/boardgame"
             }
         }
-
-        stage('Docker Push') {
-                steps {
-                    script{
-                        withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh 'docker push kanalavinodkumar/boardgame:latest'
-                        }
-
+        stage('Docker Push image') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh"docker push ${IMAGE_NAME}:{TAG}"
                     }
-                    
-                }
-        }
-
-        stage('Deployment') {
-            steps {
-                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://10.1.0.31:6443') {
-                    sh 'kubectl apply -f manifest.yaml'  
                 }
             }
         }
-     }
-
+        stage('Deploy Service') {
+            steps {
+                script{
+                    withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
+                    sh """if ! kubectl get svc boardgame-svc -n ${KUBE_NAMESPACE}; then
+                        kubectl apply -f service.yaml -n ${KUBE_NAMESPACE}
+                        fi
+                    """
+                    }
+                }
+                
+            }
+        }
+        stage('Deploy Pods') {
+            steps {
+                script{
+                    def deploymentFile = ""
+                    if (params.DEPLOY_ENV == 'blue') {
+                        deploymentFile = blue.yaml
+                    } else {
+                        deploymentFile = green.yaml
+                    }
+                    withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
+                    sh 'kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE}'
+                    
+                    }
+                }
+                
+            }
+        }
+        
+        stage('Switch traffic') {
+            when {
+                expression {return params.SWITCH_TRAFFIC }
+            }
+            steps {
+                script{
+                    def newEnv = params.DEPLOY_ENV
+                    withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
+                    sh '''kubectl parch service boardgame-svc -p "{\\"spec\\": {\\"selector\\": {\\"app\\": \\"boardgame\\", \\"version\\":\\"''' + newEnv +'''\\"}}} -n ${KUBE_NAMESPACE}
+                    '''
+                    }
+                    echo "Traffic has been switched to ${newEnv} environment"
+                }
+                
+            }
+        }
+        stage('Verify Deployment') {
+            steps {
+                script{
+                    def verifyEnv = params.DEPLOY_ENV
+                    withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
+                    sh """
+                        kubectl get pods -l version=${verifyEnv} -n ${KUBE_NAMESPACE}
+                        kubectl get svc -n ${KUBE_NAMESPACE}
+                    """
+                    }
+                }
+                
+            }
+        }
+    }
+    post{
+        always{
+            echo 'cleaning up workspace'
+            }
+    }
 //     post {
 //     always {
 //         script {
@@ -152,9 +185,4 @@ pipeline {
 //         }
 //     }
 // }
-post{
-        always{
-            echo 'cleaning up workspace'
-            }
-    }
 }

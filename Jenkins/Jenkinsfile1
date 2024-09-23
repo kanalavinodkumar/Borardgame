@@ -1,0 +1,25 @@
+pipeline{
+    agent any
+
+    options{
+        timeout(time: 1, unit: HOURS)
+    }
+
+    parameters{
+        string(name: 'App', description: 'Enter app name', defaultValue: 'BoardGame' )
+        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+        booleanParam(name: 'signoff', defaultValue: true, description: 'select value')
+        choice(name: 'ENV', choices: ['DEV','QA','PRD'], description: 'choose environment')
+    }
+
+    stages{
+        stage('Build'){
+            steps{
+                echo "App : ${params.App}"
+                echo "BIOGRAPHY : ${params.BIOGRAPHY}"
+                echo "signoff : ${params.signoff}"
+                echo "ENV : ${params.ENV}"
+            }
+        }
+    }
+}

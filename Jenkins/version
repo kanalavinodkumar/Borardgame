@@ -1,0 +1,32 @@
+pipeline{
+    agent any
+
+    environment{
+        packageVersion = ''
+    }
+
+    stages{
+        stage('Git Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/kanalavinodkumar/Borardgame.git'
+            }
+        }
+        stage('get version'){
+            steps{
+                script{
+                    def pom  = readMavenPom(file: 'pom.xml')
+                    packageVersion = pom.version
+
+                    echo "deploying version : ${packageVersion}"
+                }
+            }
+
+        }
+        stage('Deploy'){
+            steps{
+                echo " deploying version - ${packageVersion}"
+            }
+        }
+    }
+    
+}

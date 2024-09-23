@@ -1,0 +1,41 @@
+return[
+    "DEV",
+    "QA",
+    "Prod"
+]
+
+if (env.equals("Prod")){
+    return ["TNG","Prod"]
+}
+else if(env.equals("QA")){
+    return["QAF1","QAF2"]
+}
+else if(env.equals("DEV")){
+    return["DevInt","sandbox"]
+}
+else{
+    return["select a env from dropdown"]
+}
+
+
+if(sub_env.equals("TNG")){
+    return ["TNG-server-1","TNG-server-2"]
+}
+else if(sub_env.equals("Prod")){
+    return ["Prod-server-1","Prod-server-2"]
+}
+else if(sub_env.equals("QAF1")){
+    return ["QAF1-server-1","QAF1-server-2"]
+}
+else if(sub_env.equals("QAF2")){
+    return ["QAF2-server-1","QAF2-server-2"]
+}
+else if(sub_env.equals("DevInt")){
+    return ["dev-server-1","dev-server-2"]
+}
+else if(sub_env.equals("sandbox")){
+    return ["sandbox-server-1","sandbox-server-2"]
+}
+else{
+    return["select a server from dropdown"]
+}
