@@ -91,7 +91,7 @@ pipeline {
                     sh """ ls -la
                             pwd
                         if ! kubectl get svc boardgame-svc -n ${KUBE_NAMESPACE}; then
-                        kubectl apply -f service.yaml -n ${KUBE_NAMESPACE}
+                        kubectl apply -f service.yaml -n ${KUBE_NAMESPACE} --validate=false
                         fi
                     """
                     }
@@ -109,7 +109,7 @@ pipeline {
                         deploymentFile = 'green.yaml'
                     }
                     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
-                    sh 'kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE}'
+                    sh 'kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE} --validate=false'
                     
                     }
                 }
@@ -124,7 +124,7 @@ pipeline {
                 script{
                     def newEnv = params.DEPLOY_ENV
                     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
-                    sh '''kubectl patch service boardgame-svc -p "{\\"spec\\": {\\"selector\\": {\\"app\\": \\"boardgame\\", \\"version\\":\\"''' + newEnv + '''\\"}}}" -n ${KUBE_NAMESPACE}
+                    sh '''kubectl patch service boardgame-svc -p "{\\"spec\\": {\\"selector\\": {\\"app\\": \\"boardgame\\", \\"version\\":\\"''' + newEnv + '''\\"}}}" -n ${KUBE_NAMESPACE} --validate=false
                     '''
 
                     }
