@@ -87,7 +87,7 @@ pipeline {
         stage('Deploy Service') {
             steps {
                 script{
-                    withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
+                    withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'boardgame', restrictKubeConfigAccess: false) {
                     sh """ ls -la
                             pwd
                         if ! kubectl get svc boardgame-svc -n ${KUBE_NAMESPACE}; then
