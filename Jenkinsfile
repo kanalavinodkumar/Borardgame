@@ -46,13 +46,13 @@ pipeline {
                 }
             }
         }
-        ##stage('Quality Gate check') {
-        ##    steps {
-        ##        timeout(time: 1, unit: 'HOURS') {
-        ##            waitForQualityGate abortPipeline: false
-        ##        }
-        ##    }
-        ##}
+        //stage('Quality Gate check') {
+        //    steps {
+        //        timeout(time: 1, unit: 'HOURS') {
+        //            waitForQualityGate abortPipeline: false
+        //        }
+        //    }
+        //}
         stage('Build') {
             steps {
                 sh "mvn package -DskipTests=true"
