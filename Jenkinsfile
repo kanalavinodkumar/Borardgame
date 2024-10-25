@@ -109,7 +109,7 @@ pipeline {
                         deploymentFile = 'green.yaml'
                     }
                     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-token', namespace: 'boardgame', restrictKubeConfigAccess: false, serverUrl: 'https://api.vinodhub.online') {
-                    sh 'kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE} --validate=false'
+                    sh "kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE} --validate=false"
                     
                     }
                 }
